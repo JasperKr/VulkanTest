@@ -1,0 +1,6 @@
+{
+    "maxFramesInFlight": 2,
+    "maxDescriptorSets": 100,
+    "width": 800,
+    "height": 600
+}
