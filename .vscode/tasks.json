@@ -1,0 +1,28 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "./build.bat",
+            "group": {
+                "kind": "build",
+            },
+        },
+        {
+            "label": "build and run executable",
+            "type": "shell",
+            "command": "./build/main.exe",
+            "dependsOn": [
+                "build"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always"
+            },
+        }
+    ]
+}
