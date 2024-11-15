@@ -1,6 +1,9 @@
-
 mkdir build
 
-del ./build/main
+del ./build\main.exe
 
-g++ -I./include -o ./build/main ./src/main.cpp -L./lib -lglfw3 -lgdi32 -lvulkan-1
+cd shaders
+compile.bat
+
+cd ..
+g++ -I./include -I./src -o ./build\main.exe ./src\main.cpp -L./lib -lglfw3 -lgdi32 -lvulkan-1

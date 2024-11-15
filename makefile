@@ -10,6 +10,8 @@ BLD-DIR := ./build
 SCM-LST := $(call search,$(SCM-DIR),*.scm)
 SSO-LST := $(SCM-LST:$(SCM-DIR)%.scm=$(BLD-DIR)%.so)
 
+SOURCES = main.cpp ResourceManager.cpp UboManager.cpp Camera.cpp
+
 game.boot: $(SSO-LST)
   #compile .so files into .boot file
   

@@ -81,6 +81,12 @@
         "xtr1common": "cpp",
         "xtree": "cpp",
         "xutility": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "any": "cpp",
+        "codecvt": "cpp",
+        "filesystem": "cpp",
+        "numeric": "cpp",
+        "valarray": "cpp",
+        "variant": "cpp"
     }
 }
