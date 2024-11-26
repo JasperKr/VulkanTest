@@ -8,11 +8,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/hash.hpp>
 
-struct UniformBufferObject
+struct CameraUBO
 {
-    alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
+};
+
+struct ModelUBO
+{
+    alignas(16) glm::mat4 model;
 };
 
 #endif

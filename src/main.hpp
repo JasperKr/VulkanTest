@@ -40,6 +40,8 @@ namespace Main
     void drawFrame();
     void recreateSwapChain();
     void updateUniformBuffer(uint32_t currentImage);
+    void updateCameraRotation();
+    void updateCamera();
 
     bool framebufferResized = false;
 };

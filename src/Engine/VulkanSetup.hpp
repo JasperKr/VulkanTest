@@ -70,12 +70,7 @@ namespace VulkanSetup
     void createCommandPool();
     void createDepthResources();
     void createFramebuffers();
-    void createTextureImage();
-    void createTextureImageView();
-    void createTextureSampler();
     void loadModel();
-    void createVertexBuffer();
-    void createIndexBuffer();
     void createUniformBuffers();
     void createDescriptorPool();
     void createDescriptorSets();
@@ -98,8 +93,6 @@ namespace VulkanSetup
     VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
     void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
     void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-    void loadModel();
-    void createVertexBuffer();
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
     void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
     void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
@@ -139,19 +132,6 @@ namespace VulkanSetup
     extern VkDeviceMemory depthImageMemory;
     extern VkImageView depthImageView;
 
-    extern uint32_t mipLevels;
-    extern VkImage textureImage;
-    extern VkDeviceMemory textureImageMemory;
-    extern VkImageView textureImageView;
-    extern VkSampler textureSampler;
-
-    extern std::vector<Vertex> vertices;
-    extern std::vector<uint32_t> indices;
-    extern VkBuffer vertexBuffer;
-    extern VkDeviceMemory vertexBufferMemory;
-    extern VkBuffer indexBuffer;
-    extern VkDeviceMemory indexBufferMemory;
-
     extern std::vector<VkBuffer> uniformBuffers;
     extern std::vector<VkDeviceMemory> uniformBuffersMemory;
     extern std::vector<void *> uniformBuffersMapped;
@@ -165,6 +145,10 @@ namespace VulkanSetup
     extern std::vector<VkSemaphore> renderFinishedSemaphores;
     extern std::vector<VkFence> inFlightFences;
     extern uint32_t currentFrame;
+
+    extern const int MAX_FRAMES_IN_FLIGHT;
+
+    extern std::vector<Application_Model::Application_Model> models;
 }
 
 #endif

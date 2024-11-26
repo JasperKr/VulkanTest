@@ -6,6 +6,10 @@ namespace Main
     uint32_t Width = 800;
     uint32_t Height = 600;
 
+    glm::vec3 camera_position = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 camera_forwards = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
+
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
 
@@ -79,19 +83,36 @@ namespace Main
 
         vkDestroyDescriptorPool(VulkanSetup::device, VulkanSetup::descriptorPool, nullptr);
 
-        vkDestroySampler(VulkanSetup::device, VulkanSetup::textureSampler, nullptr);
-        vkDestroyImageView(VulkanSetup::device, VulkanSetup::textureImageView, nullptr);
+        for (size_t modelIndex = 0; modelIndex < VulkanSetup::models.size(); modelIndex++)
+        {
+            for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+            {
+                vkDestroyBuffer(VulkanSetup::device, VulkanSetup::models[modelIndex].uniformBuffers[i], nullptr);
+                vkFreeMemory(VulkanSetup::device, VulkanSetup::models[modelIndex].uniformBuffersMemory[i], nullptr);
+            }
+            Application_Model::Application_Model model = VulkanSetup::models[modelIndex];
+            for (size_t i = 0; i < model.textureImages.size(); i++)
+            {
+                vkDestroySampler(VulkanSetup::device, model.textureSamplers[i], nullptr);
+                vkDestroyImageView(VulkanSetup::device, model.textureImageViews[i], nullptr);
+                vkDestroyImage(VulkanSetup::device, model.textureImages[i], nullptr);
+                vkFreeMemory(VulkanSetup::device, model.textureImagesMemory[i], nullptr);
+            }
+            vkDestroyDescriptorPool(VulkanSetup::device, model.descriptorPool, nullptr);
 
-        vkDestroyImage(VulkanSetup::device, VulkanSetup::textureImage, nullptr);
-        vkFreeMemory(VulkanSetup::device, VulkanSetup::textureImageMemory, nullptr);
+            for (size_t i = 0; i < model.Vertices.size(); i++)
+            {
+                vkDestroyBuffer(VulkanSetup::device, model.indexBuffers[i], nullptr);
+                vkFreeMemory(VulkanSetup::device, model.indexBuffersMemory[i], nullptr);
 
+                vkDestroyBuffer(VulkanSetup::device, model.vertexBuffers[i], nullptr);
+                vkFreeMemory(VulkanSetup::device, model.vertexBuffersMemory[i], nullptr);
+            }
+        }
+
+        vkDestroyDescriptorSetLayout(VulkanSetup::device, Application_Model::uboDescriptorSetLayout, nullptr);
+        vkDestroyDescriptorSetLayout(VulkanSetup::device, Application_Model::textureDescriptorSetLayout, nullptr);
         vkDestroyDescriptorSetLayout(VulkanSetup::device, VulkanSetup::descriptorSetLayout, nullptr);
-
-        vkDestroyBuffer(VulkanSetup::device, VulkanSetup::indexBuffer, nullptr);
-        vkFreeMemory(VulkanSetup::device, VulkanSetup::indexBufferMemory, nullptr);
-
-        vkDestroyBuffer(VulkanSetup::device, VulkanSetup::vertexBuffer, nullptr);
-        vkFreeMemory(VulkanSetup::device, VulkanSetup::vertexBufferMemory, nullptr);
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
@@ -139,18 +160,63 @@ namespace Main
 
     void updateUniformBuffer(uint32_t currentImage)
     {
-        static auto startTime = std::chrono::high_resolution_clock::now();
+        CameraUBO ubo{};
 
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
-        UniformBufferObject ubo{};
-        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        ubo.view = glm::lookAt(camera_position, camera_position + camera_forwards, camera_up);
         ubo.proj = glm::perspective(glm::radians(45.0f), VulkanSetup::swapChainExtent.width / (float)VulkanSetup::swapChainExtent.height, 0.1f, 1000.0f);
         ubo.proj[1][1] *= -1;
 
         memcpy(VulkanSetup::uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
+    }
+
+    void updateCameraRotation()
+    {
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+
+        static double lastX = xpos, lastY = ypos;
+        static float yaw = 0, pitch = 0;
+
+        float sensitivity = 0.1f;
+        yaw += (xpos - lastX) * sensitivity;
+        pitch += (lastY - ypos) * sensitivity;
+
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+        if (pitch < -89.0f)
+            pitch = -89.0f;
+
+        glm::vec3 front;
+        front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        front.y = sin(glm::radians(pitch));
+        front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        camera_forwards = glm::normalize(front);
+
+        lastX = xpos;
+        lastY = ypos;
+    }
+
+    void updateCamera()
+    {
+        const float cameraSpeed = 0.05f;
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        {
+            camera_position += cameraSpeed * camera_forwards;
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        {
+            camera_position -= cameraSpeed * camera_forwards;
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        {
+            camera_position -= glm::normalize(glm::cross(camera_forwards, camera_up)) * cameraSpeed;
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        {
+            camera_position += glm::normalize(glm::cross(camera_forwards, camera_up)) * cameraSpeed;
+        }
+
+        updateCameraRotation();
     }
 
     void drawFrame()
@@ -170,6 +236,7 @@ namespace Main
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
+        updateCamera();
         updateUniformBuffer(VulkanSetup::currentFrame);
 
         vkResetFences(VulkanSetup::device, 1, &VulkanSetup::inFlightFences[VulkanSetup::currentFrame]);
